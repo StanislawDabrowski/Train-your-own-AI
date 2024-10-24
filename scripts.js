@@ -1,33 +1,4 @@
-/*function generate_dataset()
-{
-	let x = Array()
-	let y = Array()
-	let a = (Math.random()-0.5)*100 ;
-	let b = (Math.random()-0.5)*100;
-	let c = (Math.random()-0.5)*100;
-	for(let i = 0;i<500;i++)
-	{
-		random_x = (Math.random()-0.5)*100
-		x.push(random_x);
-		y.push(a*random_x*random_x+b*random_x+c);
-	}
-	let data = [{
-		x: x,
-		y: y,
-		mode: "markers",
-		type: 'scatter'
-	}];
-	let layout = {
-		title: a+"x^2+("+b+"x)+("+c+")",
-		xaxis: {title: 'x'},
-		yaxis: {title: 'y'}
-	}
-	Plotly.newPlot('plot', data, layout);
-
-}*/
-
-
-epsilon = 0.000001
+//epsilon = 0.000001
 
 
 function sin(x)
@@ -66,6 +37,10 @@ function min(x, y)
 {
 	return Math.min(x, y);
 }
+function abs(x)
+{
+	return Math.abs(x);
+}
 
 function add(a, b)
 {
@@ -93,9 +68,86 @@ function negation(a)
 }
 
 
+function sin_derivative(x, dx)
+{
+	return dx*Math.cos(x);
+}
+function cos_derivative(x, dx)
+{
+	return dx*(-Math.sin(x));
+}
+function tan_derivative(x, dx)
+{
+	return dx*(1/Math.cos(x))^2;
+}
+function cot_derivative(x, dx)
+{
+	return -2*dx*(cot(x))*(1/Math.sin(x))^2
+}
+function exp_derivative(x, dx)
+{
+	return Math.exp(x);
+}
+function log_derivative(x, dx)
+{
+	return dx/x;
+}
+function sqrt_derivative(x, dx)
+{
+	return dx/(2*sqrt(x));
+}
+function max_derivative(x, y, dx, dy)
+{
+	if (x>=y)
+		return dx;
+	else
+		return dy;
+}
+function min_derivative(x, y, dx, dy)
+{
+	if (x<y)
+		return dx;
+	else
+		return dy;
+}
+function abs_derivative(x, dx)
+{
+	if (x>0)
+		return dx;
+	else
+		return -dx;
+}
+
+function add_derivative(a, b, da, db)
+{
+	return da+db;
+}
+function subtract_derivative(a, b, da, db)
+{
+	return da-db;
+}
+function multiply_derivative(a, b, da, db)
+{
+	return a*db+b*da;
+}
+function divide_derivative(a, b, da, db)
+{
+	return (a*db-b*da)/(b^2);
+}
+function power_derivative(a, b, da, db)
+{
+	return Math.pow(a, b-1)*(b*da+a*log(a)*db);
+}
+function negation_derivative(a, da)
+{
+	return -da;
+}
+
+
+
 constants = ["e", "pi"];
 //variables = ["x"];
-functions = ["sin", "cos", "tan", "cot", "log", "sqrt", "max", "min"];
+functions = ["sin", "cos", "tan", "cot", "log", "sqrt", "abs", "max", "min"];
 operators = ["+", "-", "*", "/", "^", "neg"];
 separators = [",", ";"];
 brakets = ["(", ")"];
@@ -123,6 +175,7 @@ functions_arguments = {
 	"exp": 1,
 	"log": 1,
 	"sqrt": 1,
+	"abs": 1,
 	"max": 2,
 	"min": 2
 }
@@ -134,6 +187,7 @@ functions_objects = {
 	"exp": exp,
 	"log": log,
 	"sqrt": sqrt,
+	"abs": abs,
 	"max": max,
 	"min": min
 }
@@ -154,9 +208,194 @@ operators_arguments = {
 	"neg": 1
 }
 
+function_derivativs_objects = {
+	"sin": sin_derivative,
+	"cos": cos_derivative,
+	"tan": tan_derivative,
+	"cot": cot_derivative,
+	"exp": exp_derivative,
+	"log": log_derivative,
+	"sqrt": sqrt_derivative,
+	"abs": abs_derivative,
+	"max": max_derivative,
+	"min": min_derivative
+}
+
+operators_derivative_objects = {
+	"+": add_derivative,
+	"-": subtract_derivative,
+	"*": multiply_derivative,
+	"/": divide_derivative,
+	"^": power_derivative,
+	"neg": negation_derivative
+}
 
 
 
+function calculate_rpn_derivative(rpn, variables, variables_values, variable_derivative, variable_to_different_over)
+{
+	stack = [];
+	derivative_stack = [];
+	//console.log("rpn:");
+	//console.log(rpn);
+
+	for (let i = 0;i<rpn.length;i++)
+	{
+		/*console.log("ar:")
+		console.log(stack);
+		console.log(derivative_stack);
+		console.log(rpn[i]);*/
+		if (!isNaN(rpn[i]))
+		{
+			stack.push(rpn[i]);
+			derivative_stack.push(0);
+		}
+		else if (constants.includes(rpn[i]))
+		{
+			stack.push(rpn[i]);
+			derivative_stack.push(0);
+		}
+		else if (variables.includes(rpn[i]))
+		{
+			stack.push(rpn[i]);
+			if (rpn[i]==variable_to_different_over)
+				derivative_stack.push(variable_derivative);
+			else
+				derivative_stack.push(0);
+		}
+		else if (operators.includes(rpn[i]))
+		{
+			if (operators_arguments[rpn[i]]==2)
+			{
+				let b = stack.pop();
+				let a = stack.pop();
+				let db = derivative_stack.pop();
+				let da = derivative_stack.pop();
+				
+				if (variables.includes(a))
+					a = variables_values[variables.indexOf(a)];
+				else if (constants.includes(a))
+				{
+					if (a == "e")
+					{
+						a = Math.E;
+					}
+					else if (a == "pi")
+					{
+						a = Math.PI;
+					}
+				}
+				if (variables.includes(b))
+					b = variables_values[variables.indexOf(b)];
+				else if (constants.includes(b))
+				{
+					if (b == "e")
+					{
+						b = Math.E;
+					}
+					else if (a == "pi")
+					{
+						b = Math.PI;
+					}
+				}
+				stack.push(operators_objects[rpn[i]](a, b));
+				derivative_stack.push(operators_derivative_objects[rpn[i]](a, b, da, db));
+			}
+			else if (operators_arguments[rpn[i]]==1)
+			{
+				let a = stack.pop();
+				let da = derivative_stack.pop();
+				if (variables.includes(a))
+					a = variables_values[variables.indexOf(a)];
+				else if (constants.includes(a))
+				{
+					if (a == "e")
+					{
+						a = Math.E;
+					}
+					else if (a == "pi")
+					{
+						a = Math.PI;
+					}
+				}
+				stack.push(operators_objects[rpn[i]](a));
+				derivative_stack.push(operators_derivative_objects[rpn[i]](a, da));
+			}
+			else
+			{
+				console.log("undefined operator");
+			}
+		}
+		else if (functions.includes(rpn[i]))
+		{
+			if (functions_arguments[rpn[i]]==2)
+			{
+				let b = stack.pop();
+				let a = stack.pop();
+				let db = derivative_stack.pop();
+				let da = derivative_stack.pop();
+				if (variables.includes(a))
+					a = variables_values[variables.indexOf(a)];
+				else if (constants.includes(a))
+				{
+					if (a == "e")
+					{
+						a = Math.E;
+					}
+					else if (a == "pi")
+					{
+						a = Math.PI;
+					}
+				}
+				if (variables.includes(b))
+					b = variables_values[variables.indexOf(b)];
+				else if (constants.includes(b))
+				{
+					if (b == "e")
+					{
+						b = Math.E;
+					}
+					else if (a == "pi")
+					{
+						b = Math.PI;
+					}
+				}
+				stack.push(functions_objects[rpn[i]](a, b));
+				derivative_stack.push(function_derivativs_objects[rpn[i]](a, b, da, db));
+			}
+			else if (functions_arguments[rpn[i]]==1)
+			{
+				let a = stack.pop();
+				let da = derivative_stack.pop();
+				if (variables.includes(a))
+					a = variables_values[variables.indexOf(a)];
+				else if (constants.includes(a))
+				{
+					if (a == "e")
+					{
+						a = Math.E;
+					}
+					else if (a == "pi")
+					{
+						a = Math.PI;
+					}
+				}
+				stack.push(functions_objects[rpn[i]](a));
+				derivative_stack.push(function_derivativs_objects[rpn[i]](a, da));
+			}
+			else
+			{
+				console.log("undefined function");
+			}
+		}
+	}
+	
+	/*console.log("ar:")
+	console.log(stack);
+	console.log(derivative_stack);
+	console.log(rpn[rpn.length-1]);*/
+	return derivative_stack;
+}
 
 
 
@@ -251,7 +490,7 @@ function calculate_rpn(rpn, variables, variables_values)
 		{
 			if (stack.length < operators_arguments[rpn[i]])
 			{
-				//alert(1);
+				console.log(1);
 				return "error";
 			}
 			if (operators_arguments[rpn[i]] == 2)
@@ -262,7 +501,7 @@ function calculate_rpn(rpn, variables, variables_values)
 				{
 					if (!variables.includes(a) && !constants.includes(a) && typeof a !== 'number')
 					{
-						//alert(2.11);
+						console.log(2.11);
 						return "error";
 					}
 					for (let i = 0;i<variables.length;i++)
@@ -286,7 +525,7 @@ function calculate_rpn(rpn, variables, variables_values)
 				{
 					if (!variables.includes(b) && !constants.includes(b) && typeof b !== 'number')
 					{
-						//alert(2.12);
+						console.log(2.12);
 						return "error";
 					}
 					for (let i = 0;i<variables.length;i++)
@@ -317,7 +556,8 @@ function calculate_rpn(rpn, variables, variables_values)
 				{
 					if (!variables.includes(a) && !constants.includes(a) && typeof a !== 'number')
 					{
-						//alert(2.11);
+						console.log(a);
+						console.log(2.11);
 						return "error";
 					}
 					for (let i = 0;i<variables.length;i++)
@@ -347,7 +587,7 @@ function calculate_rpn(rpn, variables, variables_values)
 		{
 			if (stack.length < functions_arguments[rpn[i]])
 			{
-				//alert(3);
+				console.log(3);
 				return "error";
 			}
 			if (functions_arguments[rpn[i]] == 1)
@@ -357,7 +597,8 @@ function calculate_rpn(rpn, variables, variables_values)
 				{
 					if (!variables.includes(a) && !constants.includes(a) && typeof a !== 'number')
 					{
-						//alert(2.21);
+						console.log(String(a));
+						console.log(2.21);
 						return "error";
 					}
 					for (let i = 0;i<variables.length;i++)
@@ -389,7 +630,7 @@ function calculate_rpn(rpn, variables, variables_values)
 				{
 					if (!variables.includes(a) && !constants.includes(a) && typeof a !== 'number')
 					{
-						//alert(2.31);
+						console.log(2.31);
 						return "error";
 					}
 					for (let i = 0;i<variables.length;i++)
@@ -413,7 +654,7 @@ function calculate_rpn(rpn, variables, variables_values)
 				{
 					if (!variables.includes(b) && !constants.includes(b) && typeof b !== 'number')
 					{
-						//alert(2.32);
+						console.log(2.32);
 						return "error";
 					}
 					for (let i = 0;i<variables.length;i++)
@@ -441,10 +682,26 @@ function calculate_rpn(rpn, variables, variables_values)
 	}
 	if (stack.length != 1)
 	{
-		//alert(4);
+		console.log(4);
 		return "error";
 	}
-	return stack.pop();
+	output = stack.pop();
+	if (variables.includes(output))
+	{
+		return variables_values[variables.indexOf(output)];
+	}
+	else if (constants.includes(output))
+	{
+		if (output == "e")
+		{
+			return Math.E;
+		}
+		else if (output == "pi")
+		{
+			return Math.PI;
+		}
+	}
+	return output;
 }
 
 
@@ -563,7 +820,7 @@ function validate_formula(input, invalid_message_id, variables)
 		$("#" + invalid_message_id).show();
 		return;
 	}
-	//alert(calculate_rpn(rpn, variables, [3.14]));
+	//alert(calculate_rpn(rpn, variables, []));
 
 
 	
@@ -624,32 +881,31 @@ function train_button()
 
 	if ($("#invalid_function_formula_message").is(":hidden") && $("#invalid_domain_message").is(":hidden") && $("#invalid_train_samples_message").is(":hidden") && $("#invalid_test_samples_message").is(":hidden") && $("#invalid_activation_function_formula_message").is(":hidden") && $("#invalid_loss_function_formula_message").is(":hidden"))
 	{
-		$("#train_button").hide();
-		$("#train_button_loader").show();
-		$.ajax({
-			url: "C:/Users/staas/Desktop/pai/JQuery 2/train",
-			type: "POST",
-			data: {
-				formula: document.getElementById("formula").value,
-				domain_min: document.getElementById("domain_min").value,
-				domain_max: document.getElementById("domain_max").value,
-				activation_function: $("#advanced_activation_function").is(':checked') ? document.getElementById("activation_function_formula").value : document.getElementById("activation_function").value,
-				loss_function: $("#advanced_loss_function").is(':checked') ? document.getElementById("loss_function_formula").value : document.getElementById("loss_function").value,
-				train_samples: document.getElementById("train_samples").value,
-				test_samples: document.getElementById("test_samples").value
-			},
-			success: function(response) {
-				$("#train_button").show();
-				$("#train_button_loader").hide();
-				$("#train_results").html(response);
-				$("#train_results").show();
-			},
-			error: function(response) {
-				$("#train_button").show();
-				$("#train_button_loader").hide();
-				alert("An error occurred during training");
-			}
-		});
+		formula = $("#formula").val();
+		if ($("#advanced_activation_function").is(':checked'))
+		{
+			activation_function = $("#activation_function_formula").val();
+		}
+		else
+		{
+			activation_function = $("#activation_function").val();
+		}
+		domain_min = parseFloat($("#domain_min").val());
+		domain_max = parseFloat($("#domain_max").val());
+		if ($("#advanced_loss_function").is(':checked'))
+		{
+			loss_function = $("#loss_function_formula").val();
+		}
+		else
+		{
+			loss_function = $("#loss_function").val();
+		}
+		train_samples = parseInt($("#train_samples").val());
+		test_samples = parseInt($("#test_samples").val());
+
+		data = {formula: formula, activation_function: activation_function, domain_min: domain_min, domain_max: domain_max, loss_function: loss_function, train_samples: train_samples, test_samples: test_samples};
+		params = new URLSearchParams(data).toString();
+		window.location.href = "train/index.html?" + params;
 	}
 
 

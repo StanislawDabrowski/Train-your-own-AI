@@ -111,7 +111,8 @@ html, body{
 }
 
 .footer {
-	background-color: ivory;
+	/*background-color: ivory;*/
+	background-color: rgba(0, 0, 0, 0);
 	text-align: center;
 	padding: 10px 0;
 	position: absolute;
@@ -147,4 +148,12 @@ html, body{
 	background-color: lightgrey;
 	text-align: center;
 	height: 15%;
+}
+
+
+#warning_power_message{
+	font-size: 13px;
+	/*
+	margin-top: 0;
+	margin-bottom: 10px;*/
 }
