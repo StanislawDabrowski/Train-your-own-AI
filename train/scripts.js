@@ -135,7 +135,7 @@ activation_function_formula = to_rpn(activation_function_formula, ["x"]);
 loss_function_formula = to_rpn(loss_function_formula, ["y", "true_label"]);
 //alert(loss_function_formula);
 
-let learning_rate = 0.01;
+let learning_rate = 0.0001;
 
 
 let chart = null;
@@ -423,9 +423,26 @@ $(document).ready(function() {
 	//alert(calculate_rpn_derivative(loss_function_formula, ["y", "true_label"], [13, 10], 2, "y"));
 	//alert(calculate_rpn(loss_function_formula, ["y", "true_label"], [11, 10]));
 
+	let min_y_value = 0;
+	let max_y_value = 0;
+	for (let i = 0;i<10001;i++)
+	{
+		let y = calculate_rpn(rpn_formula, variables, [domain_min + (i/10000)*(domain_max-domain_min)]);
+		if (y < min_y_value)
+		{
+			min_y_value = y;
+		}
+		if (y > max_y_value)
+		{
+			max_y_value = y;
+		}
+	}
+	//alert(min_y_value);
+	//alert(max_y_value);
+	let alpha = Math.pow(max_y_value-min_y_value, 0.25);//magically works!
 	function generate_random_value()
 	{
-		return (Math.random()-0.5);
+		return alpha*(Math.random()-0.5);
 	}
 
 	layer1_weights = [];

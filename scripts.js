@@ -68,6 +68,8 @@ function negation(a)
 }
 
 
+let non_positive_power_base_derivarive_error_shown = false;
+
 function sin_derivative(x, dx)
 {
 	return dx*Math.cos(x);
@@ -78,10 +80,18 @@ function cos_derivative(x, dx)
 }
 function tan_derivative(x, dx)
 {
+	if (Math.cos(x)==0)
+	{
+		return 0;
+	}
 	return dx*(1/Math.cos(x))^2;
 }
 function cot_derivative(x, dx)
 {
+	if (Math.sin(x)==0)
+	{
+		return 0;
+	}
 	return -2*dx*(cot(x))*(1/Math.sin(x))^2
 }
 function exp_derivative(x, dx)
@@ -90,6 +100,10 @@ function exp_derivative(x, dx)
 }
 function log_derivative(x, dx)
 {
+	if (x==0)
+	{
+		return 0;
+	}
 	return dx/x;
 }
 function sqrt_derivative(x, dx)
@@ -136,6 +150,15 @@ function divide_derivative(a, b, da, db)
 }
 function power_derivative(a, b, da, db)
 {
+	if (a<=0)
+	{
+		if (!non_positive_power_base_derivarive_error_shown)
+		{
+			alert("derivatives of non-positive values raised to any power are not defined in this program, derivatives of such function will be set to 0. Consider changing the formula");
+			non_positive_power_base_derivarive_error_shown = true;
+		}
+		return 0;
+	}
 	return Math.pow(a, b-1)*(b*da+a*log(a)*db);
 }
 function negation_derivative(a, da)
