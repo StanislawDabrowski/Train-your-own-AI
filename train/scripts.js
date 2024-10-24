@@ -599,7 +599,7 @@ $(document).ready(function() {
 	$("#step").on("click", function() {
 		epoch++;
 		$("#epoch_number").text(epoch);
-		console.log(epoch);
+		//console.log(epoch);
 		iteration();
 		if (train)
 		{
@@ -613,7 +613,7 @@ $(document).ready(function() {
 		{
 			y.push(forward(correct_x[i])[0]);
 		}
-		console.log(y);
+		//console.log(y);
 		chart.destroy();
 		draw_chart(correct_x, correct_y, y);
 
@@ -626,7 +626,7 @@ $(document).ready(function() {
 		{
 			epoch++;
 			$("#epoch_number").text(epoch);
-			console.log(epoch);
+			//console.log(epoch);
 			iteration();
 			//plot
 			let y = [];
