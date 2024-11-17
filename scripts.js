@@ -1,6 +1,5 @@
 //epsilon = 0.000001
 
-
 function sin(x)
 {
 	return Math.sin(x);
@@ -152,12 +151,19 @@ function power_derivative(a, b, da, db)
 {
 	if (a<=0)
 	{
-		if (!non_positive_power_base_derivarive_error_shown)
+		if (db!=0)
 		{
-			alert("derivatives of non-positive values raised to any power are not defined in this program, derivatives of such function will be set to 0. Consider changing the formula");
-			non_positive_power_base_derivarive_error_shown = true;
+			if (!non_positive_power_base_derivarive_error_shown)
+			{
+				alert("derivatives of non-positive values raised to any power are not defined in this program, derivatives of such function will be set to 0. Consider changing the formula");
+				non_positive_power_base_derivarive_error_shown = true;
+			}
+			return 0;
 		}
-		return 0;
+		else
+		{
+			return Math.pow(a, b-1)*(b*da);
+		}
 	}
 	return Math.pow(a, b-1)*(b*da+a*log(a)*db);
 }
@@ -428,7 +434,7 @@ function validateFormulaInput(input, variables, invalid_message_id) {
 	// Join variables to create a pattern, and escape any special regex characters
 	let validVars = variables.map(v => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
 	// Add the valid variables to the regular expression
-	let regexPattern = new RegExp(`[^-0123456789.sinctglomaqrep+*/^(),;\\s${validVars}]`, 'g');
+	let regexPattern = new RegExp(`[^-0123456789.sinctglomaxqrep+*/^(),;\\s${validVars}]`, 'g');
 	
 	// Perform replacement to filter out invalid characters
 	input.value = input.value.replace(regexPattern, '');
